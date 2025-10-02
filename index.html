@@ -16,13 +16,13 @@
   .confetti {position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden;}
   .confetti span {position:absolute; width:6px; height:6px; background:#ff6b6b; animation:drop 1s linear forwards;}
   @keyframes drop {0%{opacity:1; transform:translateY(0) rotate(0deg);}100%{opacity:1; transform:translateY(250px) rotate(360deg);}}
-  .message {position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:36px; font-weight:bold; color:#ffd34a; display:none; text-shadow:2px 2px 6px #000;}
+  .message {position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:36px; font-weight:bold; color:#ffd34a; display:none; text-shadow:2px 2px 6px #000; z-index:10;}
 </style>
 </head>
 <body>
 <div class="card">
   <h2>오늘의 속담을 맞춰라</h2>
-  <img id="mainImg" alt="힌트 이미지">
+  <img id="mainImg" alt="힌트 이미지" src="">
   <div id="reveal" class="reveal"></div>
   <input id="answerInput" placeholder="속담 뒷부분 입력 후 Enter">
   <button id="checkBtn">확인</button>
@@ -31,71 +31,72 @@
 </div>
 
 <script>
-const DATA = [
-  {keyword:"lion,child", proverb:"사자성어: 호랑이 굴에 들어가야 호랑이를 잡는다"}, 
-  {keyword:"light,lamp", proverb:"등잔 밑이 어둡다"},
-  {keyword:"frog,well", proverb:"우물 안 개구리"},
-  {keyword:"monkey,tree", proverb:"원숭이도 나무에서 떨어진다"}
-];
+document.addEventListener("DOMContentLoaded", function(){
+  const DATA = [
+    {keyword:"lion,child", proverb:"사자성어: 호랑이 굴에 들어가야 호랑이를 잡는다"}, 
+    {keyword:"light,lamp", proverb:"등잔 밑이 어둡다"},
+    {keyword:"frog,well", proverb:"우물 안 개구리"},
+    {keyword:"monkey,tree", proverb:"원숭이도 나무에서 떨어진다"}
+  ];
 
-// 랜덤 속담 1개 선택
-const current = DATA[Math.floor(Math.random()*DATA.length)];
+  const current = DATA[Math.floor(Math.random()*DATA.length)];
 
-const mainImg = document.getElementById("mainImg");
-const reveal = document.getElementById("reveal");
-const answerInput = document.getElementById("answerInput");
-const checkBtn = document.getElementById("checkBtn");
-const confettiEl = document.getElementById("confetti");
-const messageEl = document.getElementById("message");
+  const mainImg = document.getElementById("mainImg");
+  const reveal = document.getElementById("reveal");
+  const answerInput = document.getElementById("answerInput");
+  const checkBtn = document.getElementById("checkBtn");
+  const confettiEl = document.getElementById("confetti");
+  const messageEl = document.getElementById("message");
 
-// 이미지 로드
-function loadImage() {
-  const kw = encodeURIComponent(current.keyword);
-  mainImg.src = `https://source.unsplash.com/400x250/?${kw}&sig=${Date.now()}`;
-  mainImg.onerror = ()=>{mainImg.src='https://source.unsplash.com/400x250/?children,play&sig='+Date.now();}
-}
-loadImage();
-
-// 이미지 클릭 -> 앞부분 공개
-mainImg.addEventListener("click", ()=>{
-  reveal.style.display="block";
-  const text = current.proverb.split(":")[1];
-  reveal.textContent = text.slice(0, Math.floor(text.length/2)) + "...";
-});
-
-// 메시지 표시
-function showMessage(text, duration=2000){
-  messageEl.textContent = text;
-  messageEl.style.display = "block";
-  setTimeout(()=>{messageEl.style.display="none"}, duration);
-}
-
-// 입력 검사
-function checkAnswer(){
-  const answer = answerInput.value.trim();
-  const full = current.proverb.split(":")[1];
-  if(answer.length===0) return;
-  if(full.includes(answer)){
-    // 정답: 폭죽 + 메시지
-    confettiEl.innerHTML="";
-    for(let i=0;i<30;i++){
-      const span=document.createElement("span");
-      span.style.left=Math.random()*100+"%";
-      span.style.background=`hsl(${Math.random()*360},100%,70%)`;
-      confettiEl.appendChild(span);
-      span.style.animationDuration=(0.8+Math.random())+"s";
-    }
-    showMessage("정답! 🎉", 3000);
-  } else {
-    // 오답: 흔들기 + 메시지
-    answerInput.classList.add("shake");
-    showMessage("다시 생각해보자 😅", 1500);
-    setTimeout(()=>{answerInput.classList.remove("shake")},500);
+  // 이미지 로드
+  function loadImage() {
+    const kw = encodeURIComponent(current.keyword);
+    mainImg.src = `https://source.unsplash.com/400x250/?${kw}&sig=${Date.now()}`;
+    mainImg.onerror = ()=>{mainImg.src='https://source.unsplash.com/400x250/?children,play&sig='+Date.now();}
   }
-}
+  loadImage();
 
-checkBtn.addEventListener("click",checkAnswer);
-answerInput.addEventListener("keypress",(e)=>{if(e.key==="Enter") checkAnswer()});
+  // 이미지 클릭 -> 앞부분 공개
+  mainImg.addEventListener("click", ()=>{
+    reveal.style.display="block";
+    const text = current.proverb.split(":")[1];
+    reveal.textContent = text.slice(0, Math.floor(text.length/2)) + "...";
+  });
+
+  // 메시지 표시
+  function showMessage(text, duration=2000){
+    messageEl.textContent = text;
+    messageEl.style.display = "block";
+    setTimeout(()=>{messageEl.style.display="none"}, duration);
+  }
+
+  // 입력 검사
+  function checkAnswer(){
+    const answer = answerInput.value.trim();
+    const full = current.proverb.split(":")[1];
+    if(answer.length===0) return;
+    if(full.includes(answer)){
+      // 정답: 폭죽 + 메시지
+      confettiEl.innerHTML="";
+      for(let i=0;i<30;i++){
+        const span=document.createElement("span");
+        span.style.left=Math.random()*100+"%";
+        span.style.background=`hsl(${Math.random()*360},100%,70%)`;
+        confettiEl.appendChild(span);
+        span.style.animationDuration=(0.8+Math.random())+"s";
+      }
+      showMessage("정답! 🎉", 3000);
+    } else {
+      // 오답: 흔들기 + 메시지
+      answerInput.classList.add("shake");
+      showMessage("다시 생각해보자 😅", 1500);
+      setTimeout(()=>{answerInput.classList.remove("shake")},500);
+    }
+  }
+
+  checkBtn.addEventListener("click",checkAnswer);
+  answerInput.addEventListener("keypress",(e)=>{if(e.key==="Enter") checkAnswer()});
+});
 </script>
 </body>
 </html>
