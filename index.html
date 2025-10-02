@@ -1,444 +1,101 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>오늘의 속담을 맞춰라</title>
-<meta name="description" content="유치원-언어 수업용: 이미지를 보고 속담/사자성어 뒷부분을 입력하여 맞히는 교육용 퀴즈 앱" />
 <style>
-  /* -------------------------
-     픽셀아트 컨셉 기본 스타일
-     ------------------------- */
-  :root{
-    --bg:#0b1020;
-    --panel:#10203a;
-    --accent:#ffd34a;
-    --accent-2:#ff6b6b;
-    --muted:#9fb0c8;
-    --pixel:6px; /* 픽셀 굵기 컨셉(간격 등) */
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg),#061222);font-family: "Courier New", monospace;color:#fff}
-  .wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:22px}
-  .card{
-    width:900px; max-width:96vw;
-    background:
-      repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0 2px, transparent 2px 6px),
-      linear-gradient(180deg,var(--panel),#0b2338);
-    padding:18px;border-radius:12px;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.6);
-    border:4px solid rgba(0,0,0,0.25);
-  }
-
-  header{display:flex;align-items:center;gap:16px;margin-bottom:12px}
-  .logo{
-    width:84px;height:84px;
-    background:linear-gradient(180deg,#ffd34a,#ffb84a);
-    border-radius:10px;
-    display:flex;align-items:center;justify-content:center;
-    box-shadow: inset 0 -6px 0 rgba(0,0,0,0.08);
-    font-weight:900;color:#2b2b2b;font-size:26px;
-    border:4px solid rgba(0,0,0,0.12);
-  }
-  h1{margin:0;font-size:22px;letter-spacing:1px}
-  .meta{color:var(--muted);font-size:13px}
-
-  .layout{display:flex;gap:18px}
-  .left{flex:0 0 560px;max-width:60vw}
-  .right{flex:1;min-width:220px}
-
-  /* 이미지 박스 - 클릭 시 앞부분 노출 */
-  .imageBox{
-    background:#061028;border-radius:8px;padding:12px;border:3px solid rgba(255,255,255,0.04);
-    position:relative; overflow:hidden;
-    display:flex;align-items:center;justify-content:center;
-  }
-  .imageBox img{
-    width:100%; height:360px; object-fit:cover; border-radius:6px;
-    image-rendering: -webkit-optimize-contrast; /* 픽셀 느낌 살짝 */
-    cursor:pointer; user-select:none;
-    transition: transform .5s ease;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-  }
-  .imageBox img:active{ transform: scale(0.995); }
-
-  /* 첫문장(앞부분) 표시 영역 */
-  .reveal{
-    position:absolute; left:12px; right:12px; bottom:12px;
-    background: rgba(2,10,20,0.7); padding:10px;border-radius:6px;
-    border:2px solid rgba(255,255,255,0.06);
-    font-weight:700; font-size:18px; color:var(--accent);
-    display:flex;align-items:center;gap:10px;
-  }
-  .hint{color:var(--muted);font-size:13px;margin-top:8px}
-
-  /* 입력창과 버튼 */
-  .inputRow{display:flex;gap:8px;margin-top:12px}
-  input[type="text"]{
-    flex:1;padding:12px;border-radius:8px;border:3px solid rgba(255,255,255,0.06);
-    background:#071428;color:#fff;font-size:16px;outline:none;
-    box-shadow: inset 0 -6px 0 rgba(0,0,0,0.08);
-  }
-  button.btn{
-    background:linear-gradient(180deg,var(--accent),#ffb84a);
-    color:#2b2b2b;padding:10px 14px;border-radius:8px;border:none;cursor:pointer;
-    font-weight:800; letter-spacing:0.6px;
-    box-shadow: 0 6px 0 rgba(0,0,0,0.15);
-  }
-  button.secondary{
-    background:linear-gradient(180deg,#233a5a,#1a2a44); color:var(--muted);
-    border:3px solid rgba(255,255,255,0.03);
-  }
-
-  /* 오른쪽 패널 (정보/점수/설정) */
-  .panel{background:linear-gradient(180deg,#071b2a,#041424);padding:12px;border-radius:8px;border:3px solid rgba(255,255,255,0.02)}
-  .stat{display:flex;justify-content:space-between;align-items:center;padding:8px 6px;border-radius:6px;margin-bottom:8px}
-  .stat .label{color:var(--muted);font-size:13px}
-  .stat .value{font-weight:900;color:var(--accent)}
-
-  /* 애니메이션: 성공 confetti */
-  .confetti {
-    pointer-events:none; position:absolute; left:0; top:0; right:0; bottom:0; overflow:visible;
-  }
-  .confetti span{
-    position:absolute; width:8px; height:8px; opacity:0; transform:translateY(0) rotate(0);
-    animation: drop 1200ms linear forwards;
-  }
-  @keyframes drop{
-    0% {opacity:1; transform: translateY(0) rotate(0) scale(1);}
-    100% {opacity:1; transform: translateY(340px) rotate(720deg) scale(1.1);}
-  }
-
-  /* 틀리면 입력창 흔들기 */
-  .shake { animation: shake .5s; }
-  @keyframes shake {
-    0%{ transform: translateX(0) } 25%{ transform: translateX(-8px) } 50%{ transform: translateX(6px) } 75%{ transform: translateX(-4px) } 100%{ transform: translateX(0) }
-  }
-
-  /* 모달 스타일 (첫화면 도움말) */
-  .overlay {
-    position:fixed; inset:0; display:flex;align-items:center;justify-content:center;
-    background:linear-gradient(180deg, rgba(2,6,10,0.6), rgba(0,0,0,0.6));
-  }
-  .modal{
-    background:#0d2130;border:4px solid rgba(255,255,255,0.04);padding:18px;border-radius:12px;max-width:420px;
-    text-align:left;
-  }
-  .pixel-title{font-weight:900;color:var(--accent);font-size:20px;margin-bottom:6px}
-
-  /* 반응형 */
-  @media (max-width:900px){
-    .layout{flex-direction:column}
-    .left{width:100%}
-    .right{width:100%}
-    .imageBox img{height:280px}
-  }
+  body {margin:0; font-family: monospace; background:#0b1020; color:#fff; display:flex; justify-content:center; align-items:center; height:100vh; overflow:hidden;}
+  .card {background:#10203a; padding:20px; border-radius:12px; width:400px; text-align:center; position:relative;}
+  img {width:100%; height:250px; object-fit:cover; border-radius:8px; cursor:pointer;}
+  .reveal {margin-top:10px; font-size:18px; color:#ffd34a; display:none;}
+  input {margin-top:10px; padding:10px; width:80%; border-radius:6px; border:none; outline:none;}
+  button {margin-top:10px; padding:10px 20px; border:none; border-radius:6px; background:#ffd34a; color:#2b2b2b; font-weight:bold; cursor:pointer;}
+  .shake {animation:shake 0.5s;}
+  @keyframes shake {0%{transform:translateX(0)}25%{transform:translateX(-8px)}50%{transform:translateX(6px)}75%{transform:translateX(-4px)}100%{transform:translateX(0)}}
+  .confetti {position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden;}
+  .confetti span {position:absolute; width:6px; height:6px; background:#ff6b6b; animation:drop 1s linear forwards;}
+  @keyframes drop {0%{opacity:1; transform:translateY(0) rotate(0deg);}100%{opacity:1; transform:translateY(250px) rotate(360deg);}}
+  .message {position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:36px; font-weight:bold; color:#ffd34a; display:none; text-shadow:2px 2px 6px #000;}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="card" role="application" aria-label="오늘의 속담을 맞춰라 게임">
-    <header>
-      <div class="logo">속담</div>
-      <div>
-        <h1>오늘의 속담을 맞춰라</h1>
-        <div class="meta">활용 교과: 유아 - 언어 · API: Unsplash Source</div>
-      </div>
-    </header>
-
-    <div class="layout">
-      <div class="left">
-        <div class="imageBox" id="imageBox" title="이미지를 눌러 앞부분을 확인하세요">
-          <img id="mainImg" alt="힌트 이미지 (클릭하면 속담 앞부분이 나옵니다)" src="" />
-          <!-- 앞부분 보여주는 영역 -->
-          <div id="reveal" class="reveal" style="display:none">
-            <div id="firstText">앞부분</div>
-          </div>
-          <!-- confetti container -->
-          <div id="confetti" class="confetti" aria-hidden="true"></div>
-        </div>
-
-        <div style="margin-top:12px">
-          <div class="hint">이미지를 클릭하면 속담의 앞부분(절반)이 나옵니다. 뒷부분을 입력해보세요.</div>
-
-          <div class="inputRow" style="margin-top:8px">
-            <input id="answerInput" type="text" placeholder="속담의 남은 부분을 입력한 후 Enter 또는 확인 버튼" autocomplete="off" />
-            <button id="checkBtn" class="btn">확인</button>
-            <button id="skipBtn" class="btn secondary">다음</button>
-          </div>
-
-          <div style="margin-top:10px;color:var(--muted);font-size:13px">
-            힌트: 띄어쓰기/받침/조사는 엄격하지 않게 검사됩니다.
-          </div>
-        </div>
-      </div>
-
-      <div class="right">
-        <div class="panel">
-          <div class="stat"><div class="label">현재 라운드</div><div id="round" class="value">1</div></div>
-          <div class="stat"><div class="label">정답 수</div><div id="score" class="value">0</div></div>
-          <div class="stat"><div class="label">시도 횟수</div><div id="tries" class="value">0</div></div>
-
-          <hr style="border:none;height:8px;background:linear-gradient(90deg, rgba(255,255,255,0.03), transparent);margin:10px 0;border-radius:4px" />
-
-          <div style="font-size:13px;color:var(--muted);line-height:1.5">
-            <strong>게임 규칙</strong>
-            <ul style="padding-left:18px;margin:8px 0 0 0">
-              <li>이미지를 보고 속담의 앞부분을 확인합니다.</li>
-              <li>키보드로 남은 뒷부분을 입력해 정답을 맞히세요.</li>
-              <li>정답이면 축하 애니메이션, 오답이면 다시 생각해요 애니메이션이 나옵니다.</li>
-            </ul>
-          </div>
-
-          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
-            <button id="helpBtn" class="btn secondary">도움말</button>
-            <button id="resetBtn" class="btn secondary">초기화</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<!-- 시작 도움말 모달 -->
-<div id="overlay" class="overlay" style="display:flex">
-  <div class="modal" role="dialog" aria-modal="true">
-    <div class="pixel-title">오늘의 속담을 맞춰라</div>
-    <div style="color:var(--muted);font-size:14px">
-      이미지를 보고 속담의 앞부분 힌트를 확인한 뒤, 나머지를 키보드로 입력해보세요.<br>
-      유치원 수업에서는 교사가 문장 의미를 설명하거나 아이들이 상황극으로 표현해보게 하기에 좋습니다.<br><br>
-      <button id="overlayStart" class="btn">게임 시작</button>
-    </div>
-  </div>
+<div class="card">
+  <h2>오늘의 속담을 맞춰라</h2>
+  <img id="mainImg" alt="힌트 이미지">
+  <div id="reveal" class="reveal"></div>
+  <input id="answerInput" placeholder="속담 뒷부분 입력 후 Enter">
+  <button id="checkBtn">확인</button>
+  <div class="confetti" id="confetti"></div>
+  <div class="message" id="message"></div>
 </div>
 
 <script>
-/* ------------------------------
-   데이터: 속담/사자성어 목록 (앞/뒤, 키워드)
-   - 'first'는 앞부분(클릭 시 보여지는 값)
-   - 'second'는 맞춰야할 뒷부분(검사 대상)
-   - 'keyword'는 Unsplash Source API에 전달할 검색어(힌트 이미지)
-   ------------------------------ */
 const DATA = [
-  { first: "가는 말이", second: "고와야 오는 말이 곱다", keyword: "smile,talk,friendly" },
-  { first: "등잔 밑이", second: "어둡다", keyword: "lamp,light" },
-  { first: "고생 끝에", second: "낙이 온다", keyword: "happy,celebrate" },
-  { first: "백문이", second: "불여일견", keyword: "see,look,eye" }, // 사자성어
-  { first: "호랑이 굴에", second: "가야 호랑이를 잡는다", keyword: "tiger,cave" },
-  { first: "고래 싸움에", second: "새우 등 터진다", keyword: "whale,shrimp,sea" },
-  { first: "가는 날이", second: "장날이다", keyword: "market,crowd" },
-  { first: "원숭이도", second: "나무에서 떨어진다", keyword: "monkey,tree" },
-  { first: "시작이 반이다", second: "", keyword: "start,begin" }, // 일부는 자체 완성형
-  { first: "믿는 도끼에", second: "발등 찍힌다", keyword: "axe,trust" }
+  {keyword:"lion,child", proverb:"사자성어: 호랑이 굴에 들어가야 호랑이를 잡는다"}, 
+  {keyword:"light,lamp", proverb:"등잔 밑이 어둡다"},
+  {keyword:"frog,well", proverb:"우물 안 개구리"},
+  {keyword:"monkey,tree", proverb:"원숭이도 나무에서 떨어진다"}
 ];
 
-/* 유틸: 문자열 정규화 (공백 제거, 소문자, 조사 유연성 고려) */
-function normalizeAnswer(s){
-  if(!s) return "";
-  // 소문자 & 공백 제거 & 마침표 등 제거
-  return s.toString().toLowerCase()
-    .replace(/[^\p{Letter}\p{Number}\s]/gu,"")
-    .replace(/\s+/g,"")
-    .trim();
+// 랜덤 속담 1개 선택
+const current = DATA[Math.floor(Math.random()*DATA.length)];
+
+const mainImg = document.getElementById("mainImg");
+const reveal = document.getElementById("reveal");
+const answerInput = document.getElementById("answerInput");
+const checkBtn = document.getElementById("checkBtn");
+const confettiEl = document.getElementById("confetti");
+const messageEl = document.getElementById("message");
+
+// 이미지 로드
+function loadImage() {
+  const kw = encodeURIComponent(current.keyword);
+  mainImg.src = `https://source.unsplash.com/400x250/?${kw}&sig=${Date.now()}`;
+  mainImg.onerror = ()=>{mainImg.src='https://source.unsplash.com/400x250/?children,play&sig='+Date.now();}
 }
+loadImage();
 
-/* DOM 요소 */
-const mainImg = document.getElementById('mainImg');
-const reveal = document.getElementById('reveal');
-const firstText = document.getElementById('firstText');
-const answerInput = document.getElementById('answerInput');
-const checkBtn = document.getElementById('checkBtn');
-const skipBtn = document.getElementById('skipBtn');
-const confetti = document.getElementById('confetti');
-const roundEl = document.getElementById('round');
-const scoreEl = document.getElementById('score');
-const triesEl = document.getElementById('tries');
-const overlay = document.getElementById('overlay');
-const overlayStart = document.getElementById('overlayStart');
-const helpBtn = document.getElementById('helpBtn');
-const resetBtn = document.getElementById('resetBtn');
-
-/* 상태 */
-let order = []; // 랜덤 섞인 인덱스
-let idx = 0;
-let current = null;
-let score = 0;
-let tries = 0;
-let revealed = false;
-
-/* 초기화: 문제 순서 섞기 */
-function shuffleOrder(){
-  order = DATA.map((_,i)=>i);
-  for(let i=order.length-1;i>0;i--){
-    const j = Math.floor(Math.random()*(i+1));
-    [order[i],order[j]] = [order[j],order[i]];
-  }
-}
-
-/* 문제 로드 */
-function loadRound(n){
-  idx = n;
-  current = DATA[order[idx]];
-  revealed = false;
-  // Unsplash Source: 키워드 기반 랜덤 이미지 (크기/키워드)
-  const kw = encodeURIComponent(current.keyword || "children,play");
-  // 유의: source.unsplash.com는 캐시 방지를 위해 끝에 ?t=timestamp 추가 가능
-  mainImg.src = `https://source.unsplash.com/720x480/?${kw}&t=${Date.now()}`;
-  mainImg.alt = `힌트 이미지: ${current.keyword}`;
-  reveal.style.display = 'none';
-  firstText.textContent = '';
-  answerInput.value = '';
-  answerInput.classList.remove('shake');
-  roundEl.textContent = (idx+1) + " / " + DATA.length;
-}
-
-/* 이미지 클릭 -> 앞부분 노출 */
-mainImg.addEventListener('click', ()=>{
-  if(!current) return;
-  revealed = true;
-  reveal.style.display = 'flex';
-  firstText.textContent = current.first || "(앞부분 없음)";
-  // 포커스 이동
-  answerInput.focus();
+// 이미지 클릭 -> 앞부분 공개
+mainImg.addEventListener("click", ()=>{
+  reveal.style.display="block";
+  const text = current.proverb.split(":")[1];
+  reveal.textContent = text.slice(0, Math.floor(text.length/2)) + "...";
 });
 
-/* 정답 검사 */
+// 메시지 표시
+function showMessage(text, duration=2000){
+  messageEl.textContent = text;
+  messageEl.style.display = "block";
+  setTimeout(()=>{messageEl.style.display="none"}, duration);
+}
+
+// 입력 검사
 function checkAnswer(){
-  if(!current) return;
-  const userRaw = answerInput.value || "";
-  const targetRaw = (current.second || "").toString();
-
-  // 정답 비어있는 경우(완전 자체완성형)는 first만으로도 정답 처리
-  const normalizedUser = normalizeAnswer(userRaw);
-  const normalizedTarget = normalizeAnswer(targetRaw);
-
-  tries++;
-  triesEl.textContent = tries;
-
-  // 정답 판정 로직: target이 빈 문자열이면 빈 입력 또는 엔터로 정답 처리
-  let ok = false;
-  if(normalizedTarget === ""){
-    ok = true; // 앞부분만으로도 통과
-  } else if(normalizedUser === normalizedTarget){
-    ok = true;
-  } else {
-    // 관용적 허용: 받침/조사 오차, 공백 무시했을 때 포함 검사
-    if(normalizedUser.length > 0 && normalizedTarget.includes(normalizedUser)){
-      ok = true;
-    } else {
-      // 마지막으로 초성/중성/종성 등의 세밀 비교 생략 — 유치원 수준에서 너무 엄격하지 않도록 함
-      ok = false;
+  const answer = answerInput.value.trim();
+  const full = current.proverb.split(":")[1];
+  if(answer.length===0) return;
+  if(full.includes(answer)){
+    // 정답: 폭죽 + 메시지
+    confettiEl.innerHTML="";
+    for(let i=0;i<30;i++){
+      const span=document.createElement("span");
+      span.style.left=Math.random()*100+"%";
+      span.style.background=`hsl(${Math.random()*360},100%,70%)`;
+      confettiEl.appendChild(span);
+      span.style.animationDuration=(0.8+Math.random())+"s";
     }
-  }
-
-  if(ok){
-    // 성공 애니메이션
-    score++;
-    scoreEl.textContent = score;
-    showConfetti();
-    showSuccessFlash();
-    // 잠시 후 다음 문제
-    setTimeout(()=>{ nextRound(); }, 1300);
+    showMessage("정답! 🎉", 3000);
   } else {
-    // 오답 애니메이션 (입력창 흔들기 + 안내)
-    answerInput.classList.remove('shake');
-    void answerInput.offsetWidth; // reflow to restart animation
-    answerInput.classList.add('shake');
-    // 안내 메시지(짧게 깜박)
-    flashHint("다시 생각해보자~");
+    // 오답: 흔들기 + 메시지
+    answerInput.classList.add("shake");
+    showMessage("다시 생각해보자 😅", 1500);
+    setTimeout(()=>{answerInput.classList.remove("shake")},500);
   }
 }
 
-/* 다음 문제 */
-function nextRound(){
-  const nextIdx = idx + 1;
-  if(nextIdx >= order.length){
-    // 끝: 결과 화면 간단 표시 (모달 형태 대체)
-    showEndMessage();
-  } else {
-    loadRound(nextIdx);
-  }
-}
-
-/* confetti 생성 (간단 구현) */
-function showConfetti(){
-  confetti.innerHTML = '';
-  const colors = ['#ffd34a','#ff6b6b','#4ee1b4','#8ad0ff','#cfa3ff'];
-  for(let i=0;i<26;i++){
-    const el = document.createElement('span');
-    el.style.left = (10 + Math.random()*80) + '%';
-    el.style.top = (10 + Math.random()*10) + '%';
-    el.style.background = colors[Math.floor(Math.random()*colors.length)];
-    el.style.transform = `rotate(${Math.random()*360}deg)`;
-    el.style.animationDelay = (Math.random()*200) + 'ms';
-    el.style.opacity = 0;
-    confetti.appendChild(el);
-    // remove after animation
-    setTimeout(()=>{ if(el.parentNode) el.parentNode.removeChild(el); }, 1600 + Math.random()*200);
-  }
-}
-
-/* 성공 시 짧은 화면 플래시 */
-function showSuccessFlash(){
-  const box = document.querySelector('.card');
-  box.style.transition = 'box-shadow 200ms';
-  box.style.boxShadow = '0 0 0 6px rgba(255,211,74,0.12), 0 18px 50px rgba(0,0,0,0.6)';
-  setTimeout(()=>{ box.style.boxShadow = ''; }, 700);
-}
-
-/* 짧은 안내 텍스트 플래시 (하단 input 자리에 임시 표시) */
-function flashHint(text){
-  const oldPlaceholder = answerInput.placeholder;
-  answerInput.placeholder = text;
-  setTimeout(()=>{ answerInput.placeholder = oldPlaceholder; }, 900);
-}
-
-/* 게임 끝 메시지 (간단한 알림) */
-function showEndMessage(){
-  // 모달 스타일로 간단히
-  alert("모든 문제 완료!\n정답 수: " + score + " / " + DATA.length + "\n수업에서 더 해보고 싶으면 다시 초기화하세요.");
-  resetGame();
-}
-
-/* 재시작 */
-function resetGame(){
-  shuffleOrder();
-  score = 0; tries = 0;
-  scoreEl.textContent = score;
-  triesEl.textContent = tries;
-  loadRound(0);
-}
-
-/* 버튼 바인딩 */
-checkBtn.addEventListener('click', checkAnswer);
-skipBtn.addEventListener('click', ()=>{ nextRound(); });
-resetBtn.addEventListener('click', resetGame);
-helpBtn.addEventListener('click', ()=>{ overlay.style.display = 'flex'; });
-
-/* 엔터키로 제출 */
-answerInput.addEventListener('keydown', (e)=>{
-  if(e.key === 'Enter') checkAnswer();
-});
-
-/* 시작 모달 동작 */
-overlayStart.addEventListener('click', ()=>{
-  overlay.style.display = 'none';
-  shuffleOrder();
-  resetGame();
-  // 포커스 이동(사용자 편의)
-  setTimeout(()=>{ answerInput.focus(); }, 400);
-});
-/* overlay 자체 클릭시 닫히지 않도록 방지 */
-overlay.addEventListener('click', (e)=>{ if(e.target === overlay) {/* keep open */} });
-
-/* 초기 로드: 임시 이미지(랜덤) */
-(function init(){
-  // 기본 미리보기 이미지
-  mainImg.src = 'https://source.unsplash.com/720x480/?kids,play';
-  // 접근성: 클릭 안내
-  mainImg.title = '이미지를 누르면 속담 앞부분이 나옵니다';
-})();
+checkBtn.addEventListener("click",checkAnswer);
+answerInput.addEventListener("keypress",(e)=>{if(e.key==="Enter") checkAnswer()});
 </script>
 </body>
 </html>
