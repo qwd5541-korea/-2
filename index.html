@@ -5,18 +5,48 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>오늘의 속담을 맞춰라</title>
 <style>
-  body {margin:0; font-family: monospace; background:#0b1020; color:#fff; display:flex; justify-content:center; align-items:center; height:100vh; overflow:hidden;}
-  .card {background:#10203a; padding:20px; border-radius:12px; width:400px; text-align:center; position:relative;}
-  img {width:100%; height:250px; object-fit:cover; border-radius:8px; cursor:pointer; background:#333;}
-  .reveal {margin-top:10px; font-size:18px; color:#ffd34a; display:none;}
-  input {margin-top:10px; padding:10px; width:80%; border-radius:6px; border:none; outline:none;}
-  button {margin-top:10px; padding:10px 20px; border:none; border-radius:6px; background:#ffd34a; color:#2b2b2b; font-weight:bold; cursor:pointer;}
-  .shake {animation:shake 0.5s;}
-  @keyframes shake {0%{transform:translateX(0)}25%{transform:translateX(-8px)}50%{transform:translateX(6px)}75%{transform:translateX(-4px)}100%{transform:translateX(0)}}
-  .confetti {position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden;}
-  .confetti span {position:absolute; width:6px; height:6px; background:#ff6b6b; animation:drop 1s linear forwards;}
-  @keyframes drop {0%{opacity:1; transform:translateY(0) rotate(0deg);}100%{opacity:1; transform:translateY(250px) rotate(360deg);}}
-  .message {position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:36px; font-weight:bold; color:#ffd34a; display:none; text-shadow:2px 2px 6px #000; z-index:10;}
+body {
+  margin:0; font-family: monospace; background:#0b1020; color:#fff;
+  display:flex; justify-content:center; align-items:center; height:100vh; overflow:hidden;
+}
+.card {
+  background:#10203a; padding:20px; border-radius:12px;
+  width:400px; text-align:center; position:relative; overflow:hidden;
+}
+img {
+  width:100%; height:250px; object-fit:cover; border-radius:8px;
+  cursor:pointer; background:#333;
+}
+.reveal {
+  margin-top:10px; font-size:18px; color:#ffd34a; display:none;
+}
+input {
+  margin-top:10px; padding:10px; width:80%; border-radius:6px; border:none; outline:none;
+}
+button {
+  margin-top:10px; padding:10px 20px; border:none; border-radius:6px;
+  background:#ffd34a; color:#2b2b2b; font-weight:bold; cursor:pointer;
+}
+.shake {animation:shake 0.5s;}
+@keyframes shake {
+  0%{transform:translateX(0)}25%{transform:translateX(-8px)}50%{transform:translateX(6px)}
+  75%{transform:translateX(-4px)}100%{transform:translateX(0)}
+}
+.confetti {
+  position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden;
+}
+.confetti span {
+  position:absolute; width:6px; height:6px; background:#ff6b6b;
+  animation:drop 1s linear forwards;
+}
+@keyframes drop {
+  0%{opacity:1; transform:translateY(0) rotate(0deg);}
+  100%{opacity:1; transform:translateY(250px) rotate(360deg);}
+}
+.message {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  font-size:36px; font-weight:bold; color:#ffd34a; display:none; text-shadow:2px 2px 6px #000; z-index:10;
+}
 </style>
 </head>
 <body>
@@ -33,10 +63,10 @@
 <script>
 document.addEventListener("DOMContentLoaded", function(){
   const DATA = [
-    {keyword:"lion,child", proverb:"사자성어: 호랑이 굴에 들어가야 호랑이를 잡는다"}, 
-    {keyword:"light,lamp", proverb:"등잔 밑이 어둡다"},
-    {keyword:"frog,well", proverb:"우물 안 개구리"},
-    {keyword:"monkey,tree", proverb:"원숭이도 나무에서 떨어진다"}
+    {keyword:"lion", proverb:"사자성어: 호랑이 굴에 들어가야 호랑이를 잡는다"}, 
+    {keyword:"lamp", proverb:"등잔 밑이 어둡다"},
+    {keyword:"frog", proverb:"우물 안 개구리"},
+    {keyword:"monkey", proverb:"원숭이도 나무에서 떨어진다"}
   ];
 
   const current = DATA[Math.floor(Math.random()*DATA.length)];
@@ -50,52 +80,54 @@ document.addEventListener("DOMContentLoaded", function(){
 
   let wrongCount = 0;
 
-  // 이미지 로드
+  // 안정적인 이미지 로드
   function loadImage() {
     const kw = encodeURIComponent(current.keyword);
     mainImg.src = `https://source.unsplash.com/400x250/?${kw}&sig=${Date.now()}`;
-    mainImg.onerror = ()=>{mainImg.src='https://source.unsplash.com/400x250/?children,play&sig='+Date.now();}
+    mainImg.onerror = ()=>{mainImg.src='https://source.unsplash.com/400x250/?play,child&sig='+Date.now();}
   }
   loadImage();
 
-  // 이미지 클릭 -> 앞부분 공개
   mainImg.addEventListener("click", ()=>{
     reveal.style.display="block";
     const text = current.proverb.split(":")[1];
     reveal.textContent = text.slice(0, Math.floor(text.length/2)) + "...";
   });
 
-  // 메시지 표시
-  function showMessage(text, duration=2000){
+  function showMessage(text,duration=2000){
     messageEl.textContent = text;
-    messageEl.style.display = "block";
+    messageEl.style.display="block";
     setTimeout(()=>{messageEl.style.display="none"}, duration);
   }
 
-  // 입력 검사
+  function createConfetti(){
+    confettiEl.innerHTML="";
+    for(let i=0;i<30;i++){
+      const span=document.createElement("span");
+      span.style.left=Math.random()*100+"%";
+      span.style.background=`hsl(${Math.random()*360},100%,70%)`;
+      confettiEl.appendChild(span);
+      span.style.animationDuration=(0.8+Math.random())+"s";
+      // 삭제
+      setTimeout(()=>{span.remove()},1200);
+    }
+  }
+
   function checkAnswer(){
     const answer = answerInput.value.trim();
     const full = current.proverb.split(":")[1];
     if(answer.length===0) return;
     if(full.includes(answer)){
-      // 정답: 폭죽 + 메시지
-      confettiEl.innerHTML="";
-      for(let i=0;i<30;i++){
-        const span=document.createElement("span");
-        span.style.left=Math.random()*100+"%";
-        span.style.background=`hsl(${Math.random()*360},100%,70%)`;
-        confettiEl.appendChild(span);
-        span.style.animationDuration=(0.8+Math.random())+"s";
-      }
       reveal.style.display="block";
       reveal.textContent = full;
+      createConfetti();
       showMessage("정답! 🎉", 3000);
     } else {
       wrongCount++;
       answerInput.classList.add("shake");
       showMessage("다시 생각해보자 😅", 1500);
       setTimeout(()=>{answerInput.classList.remove("shake")},500);
-      if(wrongCount >= 3){
+      if(wrongCount>=3){
         reveal.style.display="block";
         reveal.textContent = full;
         showMessage("정답 공개! 😅", 3000);
