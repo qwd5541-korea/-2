@@ -6,138 +6,126 @@
 <title>오늘의 속담을 맞춰라</title>
 <style>
 body {
-  margin:0; font-family: monospace; background:#0b1020; color:#fff;
-  display:flex; justify-content:center; align-items:center; height:100vh; overflow:hidden;
+  margin:0; font-family: monospace; background:#0b1020; color:#fff; display:flex; justify-content:center; align-items:center; height:100vh;
 }
 .card {
-  background:#10203a; padding:20px; border-radius:12px;
-  width:400px; text-align:center; position:relative; overflow:hidden;
+  background:#10203a; padding:20px; border-radius:12px; text-align:center; position:relative;
+  width:400px;
 }
 img {
-  width:100%; height:250px; object-fit:cover; border-radius:8px;
-  cursor:pointer; background:#333;
+  width:100%; height:250px; object-fit:cover; border-radius:6px; cursor:pointer;
+  background:#333;
 }
 .reveal {
   margin-top:10px; font-size:18px; color:#ffd34a; display:none;
 }
-input {
-  margin-top:10px; padding:10px; width:80%; border-radius:6px; border:none; outline:none;
-}
-button {
-  margin-top:10px; padding:10px 20px; border:none; border-radius:6px;
-  background:#ffd34a; color:#2b2b2b; font-weight:bold; cursor:pointer;
-}
+.inputRow{display:flex; gap:8px; margin-top:10px;}
+input {flex:1; padding:10px; border-radius:6px; border:none; outline:none;}
+button {padding:10px; border:none; border-radius:6px; background:#ffd34a; color:#2b2b2b; cursor:pointer; font-weight:bold;}
 .shake {animation:shake 0.5s;}
-@keyframes shake {
-  0%{transform:translateX(0)}25%{transform:translateX(-8px)}50%{transform:translateX(6px)}
-  75%{transform:translateX(-4px)}100%{transform:translateX(0)}
-}
-.confetti {
-  position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden;
-}
-.confetti span {
-  position:absolute; width:6px; height:6px; background:#ff6b6b;
-  animation:drop 1s linear forwards;
-}
-@keyframes drop {
-  0%{opacity:1; transform:translateY(0) rotate(0deg);}
-  100%{opacity:1; transform:translateY(250px) rotate(360deg);}
-}
-.message {
-  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-  font-size:36px; font-weight:bold; color:#ffd34a; display:none; text-shadow:2px 2px 6px #000; z-index:10;
-}
+@keyframes shake {0%{transform:translateX(0)}25%{transform:translateX(-8px)}50%{transform:translateX(6px)}75%{transform:translateX(-4px)}100%{transform:translateX(0)}}
+.confetti {position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:visible; z-index:10;}
+.confetti span {position:absolute; width:6px; height:6px; opacity:0; background:red; animation:drop 1200ms linear forwards;}
+@keyframes drop {0%{opacity:1; transform:translateY(0) rotate(0)}100%{opacity:1; transform:translateY(250px) rotate(720deg)}}
+.message {position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:32px; font-weight:bold; color:#ffd34a; display:none; text-shadow:2px 2px 6px #000; z-index:20;}
 </style>
 </head>
 <body>
 <div class="card">
-  <h2>오늘의 속담을 맞춰라</h2>
-  <img id="mainImg" alt="힌트 이미지" src="">
+  <h1>오늘의 속담을 맞춰라</h1>
+  <img id="mainImg" alt="힌트 이미지"/>
   <div id="reveal" class="reveal"></div>
-  <input id="answerInput" placeholder="속담 뒷부분 입력 후 Enter">
-  <button id="checkBtn">확인</button>
-  <div class="confetti" id="confetti"></div>
-  <div class="message" id="message"></div>
+  <div class="inputRow">
+    <input id="answerInput" placeholder="속담 뒷부분 입력 후 Enter"/>
+    <button id="checkBtn">확인</button>
+  </div>
+  <div id="confetti" class="confetti"></div>
+  <div id="message" class="message"></div>
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function(){
-  const DATA = [
-    {keyword:"lion", proverb:"사자성어: 호랑이 굴에 들어가야 호랑이를 잡는다"}, 
-    {keyword:"lamp", proverb:"등잔 밑이 어둡다"},
-    {keyword:"frog", proverb:"우물 안 개구리"},
-    {keyword:"monkey", proverb:"원숭이도 나무에서 떨어진다"}
-  ];
+const DATA = [
+  {first:"가는 말이", second:"고와야 오는 말이 곱다", keyword:"smile,talk,friendly"},
+  {first:"등잔 밑이", second:"어둡다", keyword:"lamp,light"},
+  {first:"고생 끝에", second:"낙이 온다", keyword:"happy,celebrate"},
+  {first:"호랑이 굴에", second:"가야 호랑이를 잡는다", keyword:"tiger,cave"},
+  {first:"원숭이도", second:"나무에서 떨어진다", keyword:"monkey,tree"}
+];
 
-  const current = DATA[Math.floor(Math.random()*DATA.length)];
+// 랜덤 속담 1개 선택
+const current = DATA[Math.floor(Math.random()*DATA.length)];
+const mainImg = document.getElementById('mainImg');
+const reveal = document.getElementById('reveal');
+const answerInput = document.getElementById('answerInput');
+const checkBtn = document.getElementById('checkBtn');
+const confetti = document.getElementById('confetti');
+const message = document.getElementById('message');
 
-  const mainImg = document.getElementById("mainImg");
-  const reveal = document.getElementById("reveal");
-  const answerInput = document.getElementById("answerInput");
-  const checkBtn = document.getElementById("checkBtn");
-  const confettiEl = document.getElementById("confetti");
-  const messageEl = document.getElementById("message");
+let wrongCount = 0;
 
-  let wrongCount = 0;
+// 이미지 안정화
+function loadImage(){
+  const kw = encodeURIComponent(current.keyword || "children,play");
+  mainImg.src = `https://source.unsplash.com/400x250/?${kw}&sig=${Date.now()}`;
+  mainImg.onerror = ()=>{mainImg.src='https://source.unsplash.com/400x250/?play,child&sig='+Date.now();}
+}
+loadImage();
 
-  // 안정적인 이미지 로드
-  function loadImage() {
-    const kw = encodeURIComponent(current.keyword);
-    mainImg.src = `https://source.unsplash.com/400x250/?${kw}&sig=${Date.now()}`;
-    mainImg.onerror = ()=>{mainImg.src='https://source.unsplash.com/400x250/?play,child&sig='+Date.now();}
-  }
-  loadImage();
-
-  mainImg.addEventListener("click", ()=>{
-    reveal.style.display="block";
-    const text = current.proverb.split(":")[1];
-    reveal.textContent = text.slice(0, Math.floor(text.length/2)) + "...";
-  });
-
-  function showMessage(text,duration=2000){
-    messageEl.textContent = text;
-    messageEl.style.display="block";
-    setTimeout(()=>{messageEl.style.display="none"}, duration);
-  }
-
-  function createConfetti(){
-    confettiEl.innerHTML="";
-    for(let i=0;i<30;i++){
-      const span=document.createElement("span");
-      span.style.left=Math.random()*100+"%";
-      span.style.background=`hsl(${Math.random()*360},100%,70%)`;
-      confettiEl.appendChild(span);
-      span.style.animationDuration=(0.8+Math.random())+"s";
-      // 삭제
-      setTimeout(()=>{span.remove()},1200);
-    }
-  }
-
-  function checkAnswer(){
-    const answer = answerInput.value.trim();
-    const full = current.proverb.split(":")[1];
-    if(answer.length===0) return;
-    if(full.includes(answer)){
-      reveal.style.display="block";
-      reveal.textContent = full;
-      createConfetti();
-      showMessage("정답! 🎉", 3000);
-    } else {
-      wrongCount++;
-      answerInput.classList.add("shake");
-      showMessage("다시 생각해보자 😅", 1500);
-      setTimeout(()=>{answerInput.classList.remove("shake")},500);
-      if(wrongCount>=3){
-        reveal.style.display="block";
-        reveal.textContent = full;
-        showMessage("정답 공개! 😅", 3000);
-      }
-    }
-  }
-
-  checkBtn.addEventListener("click",checkAnswer);
-  answerInput.addEventListener("keypress",(e)=>{if(e.key==="Enter") checkAnswer()});
+// 이미지 클릭 -> 앞부분 표시
+mainImg.addEventListener('click', ()=>{
+  reveal.style.display="block";
+  reveal.textContent = current.first + "...";
+  answerInput.focus();
 });
+
+// 문자열 정규화
+function normalize(s){return s.toLowerCase().replace(/\s+/g,"").replace(/[^\w]/g,"").trim();}
+
+// 폭죽 생성
+function showConfetti(){
+  confetti.innerHTML="";
+  const colors = ['#ffd34a','#ff6b6b','#4ee1b4','#8ad0ff','#cfa3ff'];
+  for(let i=0;i<30;i++){
+    const span=document.createElement('span');
+    span.style.left = Math.random()*100+'%';
+    span.style.background = colors[Math.floor(Math.random()*colors.length)];
+    confetti.appendChild(span);
+    span.style.animationDelay = Math.random()*200+'ms';
+    setTimeout(()=>{span.remove()},1500);
+  }
+}
+
+// 메시지 표시
+function showMessage(text,duration=2000){ 
+  message.textContent=text; message.style.display='block';
+  setTimeout(()=>{message.style.display='none';},duration);
+}
+
+// 정답 체크
+function checkAnswer(){
+  const user = normalize(answerInput.value);
+  const target = normalize(current.second);
+  wrongCount++;
+
+  if(target === "" || user === target || target.includes(user)){
+    reveal.style.display="block";
+    reveal.textContent = current.first + current.second;
+    showConfetti();
+    showMessage("정답!",2500);
+  }else{
+    answerInput.classList.remove('shake'); void answerInput.offsetWidth; answerInput.classList.add('shake');
+    if(wrongCount>=3){
+      reveal.style.display="block";
+      reveal.textContent = current.first + current.second;
+      showMessage("정답 공개!",2500);
+    }else{
+      showMessage("다시 생각해보자~",1500);
+    }
+  }
+}
+
+checkBtn.addEventListener('click',checkAnswer);
+answerInput.addEventListener('keydown',e=>{if(e.key==='Enter') checkAnswer();});
 </script>
 </body>
 </html>
