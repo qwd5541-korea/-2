@@ -1,131 +1,131 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>오늘의 속담을 맞춰라</title>
 <style>
-body {
-  margin:0; font-family: monospace; background:#0b1020; color:#fff; display:flex; justify-content:center; align-items:center; height:100vh;
-}
-.card {
-  background:#10203a; padding:20px; border-radius:12px; text-align:center; position:relative;
-  width:400px;
-}
-img {
-  width:100%; height:250px; object-fit:cover; border-radius:6px; cursor:pointer;
-  background:#333;
-}
-.reveal {
-  margin-top:10px; font-size:18px; color:#ffd34a; display:none;
-}
-.inputRow{display:flex; gap:8px; margin-top:10px;}
-input {flex:1; padding:10px; border-radius:6px; border:none; outline:none;}
-button {padding:10px; border:none; border-radius:6px; background:#ffd34a; color:#2b2b2b; cursor:pointer; font-weight:bold;}
-.shake {animation:shake 0.5s;}
-@keyframes shake {0%{transform:translateX(0)}25%{transform:translateX(-8px)}50%{transform:translateX(6px)}75%{transform:translateX(-4px)}100%{transform:translateX(0)}}
-.confetti {position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:visible; z-index:10;}
-.confetti span {position:absolute; width:6px; height:6px; opacity:0; background:red; animation:drop 1200ms linear forwards;}
-@keyframes drop {0%{opacity:1; transform:translateY(0) rotate(0)}100%{opacity:1; transform:translateY(250px) rotate(720deg)}}
-.message {position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:32px; font-weight:bold; color:#ffd34a; display:none; text-shadow:2px 2px 6px #000; z-index:20;}
+  body{margin:0;background:#0b1020;color:#fff;font-family:"Courier New",monospace;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;}
+  .card{background:#10203a;padding:20px;border-radius:12px;text-align:center;position:relative;width:90%;max-width:600px;}
+  .proverb{font-size:48px;font-weight:bold;margin:20px 0;cursor:pointer;}
+  input{padding:10px;font-size:18px;border-radius:6px;border:none;outline:none;width:60%;}
+  button{padding:10px 16px;font-size:16px;margin-left:8px;border-radius:6px;border:none;cursor:pointer;background:#ffd34a;color:#2b2b2b;font-weight:bold;}
+  .message{font-size:28px;font-weight:bold;margin-top:20px;color:#ff6b6b;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:none;}
+  .confetti{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible;}
+  .confetti span{position:absolute;width:8px;height:8px;opacity:0;transform:translateY(0) rotate(0);animation:drop 1200ms linear forwards;}
+  @keyframes drop{0%{opacity:1;transform:translateY(0) rotate(0) scale(1);}100%{opacity:1;transform:translateY(300px) rotate(720deg) scale(1.1);}}
+  .shake{animation:shake 0.5s;}
+  @keyframes shake{0%{transform:translateX(0);}25%{transform:translateX(-8px);}50%{transform:translateX(6px);}75%{transform:translateX(-4px);}100%{transform:translateX(0);}}
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;}
+  .modal{background:#0d2130;padding:20px;border-radius:12px;text-align:center;}
 </style>
 </head>
 <body>
 <div class="card">
-  <h1>오늘의 속담을 맞춰라</h1>
-  <img id="mainImg" alt="힌트 이미지"/>
-  <div id="reveal" class="reveal"></div>
-  <div class="inputRow">
-    <input id="answerInput" placeholder="속담 뒷부분 입력 후 Enter"/>
+  <div id="proverb" class="proverb" title="클릭하면 앞부분이 나타납니다">❓</div>
+  <div>
+    <input id="answerInput" placeholder="속담 뒷부분을 입력하세요" />
     <button id="checkBtn">확인</button>
+    <button id="resetBtn">다시 시작</button>
   </div>
   <div id="confetti" class="confetti"></div>
   <div id="message" class="message"></div>
 </div>
 
+<div id="overlay" class="overlay">
+  <div class="modal">
+    <h2>오늘의 속담을 맞춰라</h2>
+    <p>속담 앞부분을 보고 나머지를 입력해 정답을 맞혀보세요.<br>3번 틀리면 정답이 공개됩니다.</p>
+    <button id="overlayStart">게임 시작</button>
+  </div>
+</div>
+
 <script>
-const DATA = [
-  {first:"가는 말이", second:"고와야 오는 말이 곱다", keyword:"smile,talk,friendly"},
-  {first:"등잔 밑이", second:"어둡다", keyword:"lamp,light"},
-  {first:"고생 끝에", second:"낙이 온다", keyword:"happy,celebrate"},
-  {first:"호랑이 굴에", second:"가야 호랑이를 잡는다", keyword:"tiger,cave"},
-  {first:"원숭이도", second:"나무에서 떨어진다", keyword:"monkey,tree"}
+const DATA=[
+  {first:"가는 말이", second:"고와야 오는 말이 곱다"},
+  {first:"등잔 밑이", second:"어둡다"},
+  {first:"고생 끝에", second:"낙이 온다"},
+  {first:"백문이", second:"불여일견"},
+  {first:"호랑이 굴에", second:"가야 호랑이를 잡는다"},
+  {first:"고래 싸움에", second:"새우 등 터진다"},
+  {first:"가는 날이", second:"장날이다"},
+  {first:"원숭이도", second:"나무에서 떨어진다"},
+  {first:"시작이 반이다", second:""},
+  {first:"믿는 도끼에", second:"발등 찍힌다"}
 ];
 
-// 랜덤 속담 1개 선택
-const current = DATA[Math.floor(Math.random()*DATA.length)];
-const mainImg = document.getElementById('mainImg');
-const reveal = document.getElementById('reveal');
-const answerInput = document.getElementById('answerInput');
-const checkBtn = document.getElementById('checkBtn');
-const confetti = document.getElementById('confetti');
-const message = document.getElementById('message');
+let current=null, wrongCount=0;
 
-let wrongCount = 0;
+const proverbEl=document.getElementById('proverb');
+const answerInput=document.getElementById('answerInput');
+const checkBtn=document.getElementById('checkBtn');
+const resetBtn=document.getElementById('resetBtn');
+const message=document.getElementById('message');
+const confetti=document.getElementById('confetti');
+const overlay=document.getElementById('overlay');
+const overlayStart=document.getElementById('overlayStart');
 
-// 이미지 안정화
-function loadImage(){
-  const kw = encodeURIComponent(current.keyword || "children,play");
-  mainImg.src = `https://source.unsplash.com/400x250/?${kw}&sig=${Date.now()}`;
-  mainImg.onerror = ()=>{mainImg.src='https://source.unsplash.com/400x250/?play,child&sig='+Date.now();}
+function normalize(s){return s.toLowerCase().replace(/\s+/g,'').replace(/[^\p{Letter}\p{Number}]/gu,'');}
+
+function pickRandom(){current=DATA[Math.floor(Math.random()*DATA.length)];wrongCount=0;proverbEl.textContent='❓';answerInput.value='';message.style.display='none';}
+
+function showConfetti(){
+  confetti.innerHTML='';
+  const colors=['#ffd34a','#ff6b6b','#4ee1b4','#8ad0ff','#cfa3ff'];
+  for(let i=0;i<50;i++){
+    const el=document.createElement('span');
+    el.style.left=Math.random()*100+'%';
+    el.style.top='0px';
+    el.style.background=colors[Math.floor(Math.random()*colors.length)];
+    el.style.animationDelay=(Math.random()*200)+'ms';
+    confetti.appendChild(el);
+    setTimeout(()=>{if(el.parentNode) el.parentNode.removeChild(el)},1500+Math.random()*300);
+  }
 }
-loadImage();
 
-// 이미지 클릭 -> 앞부분 표시
-mainImg.addEventListener('click', ()=>{
-  reveal.style.display="block";
-  reveal.textContent = current.first + "...";
-  answerInput.focus();
+function showMessage(text,time){
+  message.textContent=text;
+  message.style.display='block';
+  setTimeout(()=>{message.style.display='none';},time);
+}
+
+proverbEl.addEventListener('click',()=>{
+  if(current) proverbEl.textContent=current.first;
 });
 
-// 문자열 정규화
-function normalize(s){return s.toLowerCase().replace(/\s+/g,"").replace(/[^\w]/g,"").trim();}
-
-// 폭죽 생성
-function showConfetti(){
-  confetti.innerHTML="";
-  const colors = ['#ffd34a','#ff6b6b','#4ee1b4','#8ad0ff','#cfa3ff'];
-  for(let i=0;i<30;i++){
-    const span=document.createElement('span');
-    span.style.left = Math.random()*100+'%';
-    span.style.background = colors[Math.floor(Math.random()*colors.length)];
-    confetti.appendChild(span);
-    span.style.animationDelay = Math.random()*200+'ms';
-    setTimeout(()=>{span.remove()},1500);
-  }
-}
-
-// 메시지 표시
-function showMessage(text,duration=2000){ 
-  message.textContent=text; message.style.display='block';
-  setTimeout(()=>{message.style.display='none';},duration);
-}
-
-// 정답 체크
 function checkAnswer(){
-  const user = normalize(answerInput.value);
-  const target = normalize(current.second);
+  if(!current) return;
+  const user=normalize(answerInput.value);
+  const target=normalize(current.second);
   wrongCount++;
-
-  if(target === "" || user === target || target.includes(user)){
-    reveal.style.display="block";
-    reveal.textContent = current.first + current.second;
+  if(target===""){ // 뒷부분 없는 속담
+    proverbEl.textContent=current.first;
     showConfetti();
     showMessage("정답!",2500);
-  }else{
+  } else if(user===target){
+    proverbEl.textContent=current.first+current.second;
+    showConfetti();
+    showMessage("정답!",2500);
+  } else {
     answerInput.classList.remove('shake'); void answerInput.offsetWidth; answerInput.classList.add('shake');
     if(wrongCount>=3){
-      reveal.style.display="block";
-      reveal.textContent = current.first + current.second;
+      proverbEl.textContent=current.first+current.second;
       showMessage("정답 공개!",2500);
-    }else{
-      showMessage("다시 생각해보자~",1500);
-    }
+    } else showMessage("다시 생각해보자~",1500);
   }
 }
+
+function resetGame(){pickRandom();}
 
 checkBtn.addEventListener('click',checkAnswer);
 answerInput.addEventListener('keydown',e=>{if(e.key==='Enter') checkAnswer();});
+resetBtn.addEventListener('click',resetGame);
+
+overlayStart.addEventListener('click',()=>{
+  overlay.style.display='none';
+  resetGame();
+  setTimeout(()=>{answerInput.focus();},200);
+});
 </script>
 </body>
 </html>
